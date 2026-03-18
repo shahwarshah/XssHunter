@@ -4,7 +4,7 @@
 Made by: Syed Shahwar Ahmed
 Type: CLI + Web UI XSS Payload Generator
 
-🧩 Overview
+## 🧩 Overview
 
 XssHunter is a professional XSS exploitation toolkit designed for bug bounty hunters and penetration testers. It helps you:
 Analyze filtering and blocked characters on injection points
@@ -15,7 +15,7 @@ Work via CLI or an interactive Web UI
 
 It’s designed to maximize payload efficiency while testing vulnerable endpoints and simulate real-world bypasses.
 
-🛠 Features
+## 🛠 Features
 CLI Version
 
 Context detection: HTML / Attribute / JS / Unknown
@@ -43,7 +43,7 @@ Supports same mutation engine as CLI
 
 Optional: export all payloads (coming soon)
 
-⚡ Installation
+## ⚡ Installation
 
 Clone the repository:
 
@@ -58,16 +58,13 @@ Flask (for Web UI)
 
 Python 3.10+
 
-🚀 Usage
+## 🚀 Usage
 CLI Version
 python xsshunter_cli.py
 
 Follow the prompts to select context
-
 Answer filter questions (<script> blocked?, alert() blocked?)
-
 Load custom payloads if needed
-
 Generated payloads will be displayed in console
 
 Web UI Version
@@ -80,7 +77,7 @@ Click Generate Payloads to see results
 Copy individual payloads with the Copy button
 Search or filter payloads dynamically
 
-🎯 Example Workflow
+## 🎯 Example Workflow
 
 Identify a possible XSS injection point.
 
@@ -91,13 +88,13 @@ Answer filter questions to guide payload generation.
 Copy the working payloads to your testing environment.
 Optionally, add your own payloads and generate new mutations.
 
-🧰 Recommended Usage
+## 🧰 Recommended Usage
 
 Only test on targets you own or have permission to test.
 Combine with browser developer tools and proxy tools for live testing.
 Keep a record of which payloads bypass filters for reporting.
 
-📂 File Structure
+## 📂 File Structure
 XssHunter/
 │
 ├─ xsshunter_cli.py          # CLI version
@@ -108,12 +105,11 @@ XssHunter/
 │   └─ static/
 │       └─ (optional CSS/JS)
 └─ requirements.txt
-⚡ License
+
+##⚡ License
 
 XssHunter is released under the MIT License. Use responsibly.
 
-👨‍💻 Author
-
+## 👨‍💻 Author
 Syed Shahwar Ahmed – professional bug bounty hunter & security researcher
-GitHub
- | LinkedIn
+
