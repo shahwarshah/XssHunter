@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XssHunter</title>
+    <style>
+        /* Full screen green hacker background */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1; /* behind everything */
+        }
+
+        /* Centered UI */
+        #container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            color: #00ffff; /* bright cyan for text */
+        }
+
+        h1 {
+            font-size: 3em;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        p { font-size: 1.2em; margin-bottom: 20px; }
+
+        select, input[type=text], textarea {
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 1.2em;
+            background: rgba(0,0,0,0.6);
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        button {
+            background: #00ffff;
+            color: #0a0a0a;
+            padding: 12px 25px;
+            border: none;
+            margin: 10px 0;
+            cursor: pointer;
+            font-size: 1.2em;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover { box-shadow: 0 0 10px #00ffff; }
+
+        .payload {
+            background: rgba(0,0,0,0.6);
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 500px;
+            word-break: break-all;
+            border: 1px solid #00ffff;
+        }
+
+        #results {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: scroll;
+        }
+
+        label { font-size: 1.1em; margin-right: 10px; }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.6); }
+        ::-webkit-scrollbar-thumb { background: #00ffff; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00ccff; }
+
+    </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div id="container">
+    <h1>🔥 XssHunter</h1>
+    <p>Made by Syed Shahwar Ahmed</p>
+
+    <h3>Context</h3>
+    <select id="context">
+        <option value="html">HTML</option>
+        <option value="attribute">Attribute</option>
+        <option value="js">JavaScript</option>
+        <option value="unknown">Unknown</option>
+    </select>
+
+    <h3>Filters / Observed Blocks</h3>
+    <label><input type="checkbox" value="script"> &lt;script&gt; blocked</label>
+    <label><input type="checkbox" value="alert"> alert() blocked</label>
+    <label><input type="checkbox" value="angle"> &lt; &gt; filtered</label>
+    <label><input type="checkbox" value="quote"> Quotes filtered</label>
+    <label><input type="checkbox" value="event"> Event handlers blocked</label>
+    <label><input type="checkbox" value="space"> Space filtered</label>
+    <label><input type="checkbox" value="jsproto"> javascript: blocked</label>
+
+    <h3>Custom Payloads</h3>
+    <textarea id="custom" rows="5" placeholder="Paste your payloads here..."></textarea>
+
+    <button onclick="generate()">Generate Payloads</button>
+
+    <h3>Search</h3>
+    <input type="text" id="search" onkeyup="filterPayloads()" placeholder="Search payloads...">
+
+    <h3>Results</h3>
+    <div id="results"></div>
+</div>
+
+<script>
+    // ---------------- MATRIX EFFECT ----------------
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+
+    const cols = Math.floor(w / 20) + 1;
+    const yPos = Array(cols).fill(0);
+
+    function matrix() {
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = "#00ff00"; // matrix green falling letters
+        ctx.font = "20px monospace";
+
+        for(let i=0; i<yPos.length; i++){
+            const text = String.fromCharCode(33 + Math.random() * 94);
+            ctx.fillText(text, i*20, yPos[i]*20);
+
+            if(yPos[i]*20 > h && Math.random() > 0.975) yPos[i] = 0;
+            yPos[i]++;
+        }
+    }
+
+    setInterval(matrix, 50);
+
+    window.addEventListener("resize", () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    });
+
+    // ---------------- PAYLOAD UI ----------------
+    function generate() {
+        let context = document.getElementById("context").value;
+        let filters = [];
+        document.querySelectorAll("input[type=checkbox]:checked").forEach(el => filters.push(el.value));
+        let custom = document.getElementById("custom").value.split("\n");
+
+        fetch("/generate", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({context, filters, custom_payloads: custom})
+        })
+        .then(res => res.json())
+        .then(data => {
+            let div = document.getElementById("results");
+            div.innerHTML = "";
+            data.forEach(p => {
+                let el = document.createElement("div");
+                el.className = "payload";
+                el.innerHTML = `<span>${p}</span> <button onclick="copyText('${p.replace(/'/g,"\\'")}')">Copy</button>`;
+                div.appendChild(el);
+            });
+        });
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text);
+        alert("Copied!");
+    }
+
+    function filterPayloads() {
+        let search = document.getElementById("search").value.toLowerCase();
+        document.querySelectorAll(".payload").forEach(el => {
+            el.style.display = el.innerText.toLowerCase().includes(search) ? "flex" : "none";
+        });
+    }
+</script>
+
+</body>
+</html>
